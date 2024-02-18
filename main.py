@@ -5,6 +5,7 @@ from flask import Flask, request, jsonify
 
 from flask_login import LoginManager, login_required, UserMixin, current_user, logout_user
 
+import logging
 
 # from flask_jwt_extended import create_access_token
 # from flask_jwt_extended import get_jwt_identity
@@ -28,12 +29,11 @@ db.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return User.get(user_id)
 
 
 @app.route('/')
 def index():
-    # Example route
     return 'Hello, World!'
 
 
@@ -60,7 +60,7 @@ def register():
     return jsonify({'message': 'User registered successfully'}), 201
 
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     # Retrieve login credentials from the request
     username = request.form.get('username')
@@ -69,10 +69,17 @@ def login():
     # Find the user in the database
     user = User.query.filter_by(username=username).first()
 
+    # Log the retrieved credentials and user details for debugging
+    logging.info(f"Login attempt: Username - {username}, Password - {password}")
+    if user:
+        logging.info(f"User found: Username - {user.username}, Password - {user.password}")
+    else:
+        logging.info("User not found")
+
     # Check if the user exists and if the password is correct
-    if user and user.password == password:
+    if user and user.ch:
         # Log in the user
-        load_user(user.id)
+        load_user(user)
         return jsonify({'message': 'Login successful'})
 
     # Return an error message if login fails
