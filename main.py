@@ -3,16 +3,21 @@
 
 from flask import Flask, request, jsonify
 
-from flask_jwt_extended import create_access_token
-from flask_jwt_extended import get_jwt_identity
-from flask_jwt_extended import jwt_required
-from flask_jwt_extended import JWTManager
+from flask_login import LoginManager, login_required, UserMixin, current_user, logout_user
+
+
+# from flask_jwt_extended import create_access_token
+# from flask_jwt_extended import get_jwt_identity
+# from flask_jwt_extended import jwt_required
+# from flask_jwt_extended import JWTManager
 
 from flask_sqlalchemy import SQLAlchemy
 
 from models import db, User, Task  # Import db, User and Task from models.py
 
 app = Flask(__name__)
+
+login_manager = LoginManager(app)
 
 app.config['SECRET_KEY'] = '888-dg885v5-v685fv-5xc4vvf-gjgh5cvb-5gh413v'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mytaskpool.db'  # SQLite database URI
@@ -21,12 +26,18 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable modification tra
 db.init_app(app)
 
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
 @app.route('/')
 def index():
     # Example route
     return 'Hello, World!'
 
 
+# Register User
 @app.route("/register", methods=["POST"])
 def register():
 
@@ -43,16 +54,42 @@ def register():
     db.session.add(new_user)
     db.session.commit()
 
-    # Generate JWT token for the new user
-    access_token = create_access_token(identity=new_user.id)
+    load_user(new_user.id)
 
     # Return registration success response with JWT token
-    return jsonify({'message': 'User registered successfully', 'access_token': access_token}), 201
+    return jsonify({'message': 'User registered successfully'}), 201
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    # Retrieve login credentials from the request
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    # Find the user in the database
+    user = User.query.filter_by(username=username).first()
+
+    # Check if the user exists and if the password is correct
+    if user and user.password == password:
+        # Log in the user
+        load_user(user.id)
+        return jsonify({'message': 'Login successful'})
+
+    # Return an error message if login fails
+    return jsonify({'message': 'Invalid username or password'}), 401
+
+
+# Logout user
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return jsonify({'message': 'Logout successful'})
 
 
 # Route for adding a task (login required)
 @app.route("/tasks", methods=["POST"])
-@jwt_required()
+@login_required
 def add_task():
     # Get task data from request
     title = request.json.get('title')
@@ -75,7 +112,7 @@ def add_task():
 
 # Route for retrieving tasks (login required)
 @app.route("/tasks", methods=["GET"])
-@jwt_required()
+@login_required
 def get_tasks():
     user_id = get_jwt_identity()
     tasks = Task.query.filter_by(user_id=user_id).all()
