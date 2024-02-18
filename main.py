@@ -27,21 +27,14 @@ def index():
     return 'Hello, World!'
 
 
-@app.route("/register", methods=["GET", "POST"])
+@app.route("/register", methods=["POST"])
 def register():
-    
-    if not request.is_json:
-        return jsonify({"message": "Request must be JSON"}), 400
 
-    data = request.get_json()
-    if not all(key in data for key in ['username', 'email', 'password']):
-        return jsonify({"message": "Missing required fields"}), 400
+    username = request.args.get('username')
+    email = request.args.get('email')
+    password = request.args.get('password')
 
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-
-    new_user = User(username=username, email=email, password=password)
+    new_user = User(username=username, email=email, password_hash=password)
 
     db.session.add(new_user)
     db.session.commit()
