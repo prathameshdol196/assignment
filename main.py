@@ -34,12 +34,52 @@ def register():
     email = request.args.get('email')
     password = request.args.get('password')
 
+    existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+    if existing_user:
+        return jsonify({'message': 'Username or email already exists'}), 400
+
     new_user = User(username=username, email=email, password_hash=password)
 
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify({'message': 'User registered successfully'})
+    # Generate JWT token for the new user
+    access_token = create_access_token(identity=new_user.id)
+
+    # Return registration success response with JWT token
+    return jsonify({'message': 'User registered successfully', 'access_token': access_token}), 201
+
+
+# Route for adding a task (login required)
+@app.route("/tasks", methods=["POST"])
+@jwt_required()
+def add_task():
+    # Get task data from request
+    title = request.json.get('title')
+    description = request.json.get('description')
+    impact = request.json.get('impact')
+    ease = request.json.get('ease')
+    confidence = request.json.get('confidence')
+
+    # Validate input
+    if not all([title, description, impact, ease, confidence]):
+        return jsonify({'message': 'All fields are required'}), 400
+
+    # Create new task
+    new_task = Task(title=title, description=description, impact=impact, ease=ease, confidence=confidence, user_id=get_jwt_identity())
+    db.session.add(new_task)
+    db.session.commit()
+
+    return jsonify({'message': 'Task added successfully'}), 201
+
+
+# Route for retrieving tasks (login required)
+@app.route("/tasks", methods=["GET"])
+@jwt_required()
+def get_tasks():
+    user_id = get_jwt_identity()
+    tasks = Task.query.filter_by(user_id=user_id).all()
+    return jsonify([task.serialize() for task in tasks])
 
 
 if __name__ == '__main__':
