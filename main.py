@@ -3,7 +3,9 @@
 
 from flask import Flask, request, jsonify
 
-from flask_login import LoginManager, login_required, UserMixin, current_user, logout_user
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from flask_login import LoginManager, login_required, UserMixin, current_user, logout_user, login_user
 
 import logging
 
@@ -29,7 +31,7 @@ db.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get(user_id)
+    return User.query.get(int(user_id))
 
 
 @app.route('/')
@@ -49,37 +51,41 @@ def register():
     if existing_user:
         return jsonify({'message': 'Username or email already exists'}), 400
 
-    new_user = User(username=username, email=email, password_hash=password)
+    password_hash = generate_password_hash(password)
+
+    new_user = User(username=username, email=email, password_hash=password_hash)
 
     db.session.add(new_user)
     db.session.commit()
 
-    load_user(new_user.id)
+    login_user(new_user)
 
     # Return registration success response with JWT token
     return jsonify({'message': 'User registered successfully'}), 201
 
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/login", methods=["POST"])
 def login():
     # Retrieve login credentials from the request
-    username = request.form.get('username')
-    password = request.form.get('password')
+    email = request.args.get('email')
+    password = request.args.get('password')
+
+    print(email)
+    print(password)
 
     # Find the user in the database
-    user = User.query.filter_by(username=username).first()
+    user = User.query.filter_by(email=email).first()  # i think somwthing is wrong here
 
-    # Log the retrieved credentials and user details for debugging
-    logging.info(f"Login attempt: Username - {username}, Password - {password}")
-    if user:
-        logging.info(f"User found: Username - {user.username}, Password - {user.password}")
-    else:
-        logging.info("User not found")
+    print(user)
+    print(User.query.filter_by(email=email).all())
+    print(user.username, user.email, user.password_hash)
 
-    # Check if the user exists and if the password is correct
-    if user and user.ch:
+    if user and check_password_hash(user.password_hash, password):
+        print("Inside if user")
+
         # Log in the user
-        load_user(user)
+        print("inside if login")
+        login_user(user)
         return jsonify({'message': 'Login successful'})
 
     # Return an error message if login fails
@@ -121,9 +127,7 @@ def add_task():
 @app.route("/tasks", methods=["GET"])
 @login_required
 def get_tasks():
-    user_id = get_jwt_identity()
-    tasks = Task.query.filter_by(user_id=user_id).all()
-    return jsonify([task.serialize() for task in tasks])
+    pass
 
 
 if __name__ == '__main__':
