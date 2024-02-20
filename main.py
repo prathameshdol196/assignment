@@ -65,15 +65,8 @@ def login():
     email = request.args.get("email")
     password = request.args.get("password")
 
-    print(email)
-    print(password)
-
     # Find the user in the database
     user = User.query.filter_by(email=email).first()  # i think somwthing is wrong here
-
-    print(user)
-    print(User.query.filter_by(email=email).all())
-    print(user.username, user.email, user.password_hash)
 
     if user and check_password_hash(user.password_hash, password):
         print("Inside if user")
@@ -124,7 +117,6 @@ def add_task():
 @app.route("/get_tasks", methods=["GET"])  # Done
 @login_required
 def get_tasks():
-    # Retrieve tasks for the current user sorted by the average score in descending order
     # Query the database for tasks sorted by average score in descending order
     tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.average_score.desc()).limit(10).all()
 
@@ -132,27 +124,72 @@ def get_tasks():
     serialized_tasks = [{"id": task.id, "title": task.title, "description": task.description, "impact": task.impact, "ease": task.ease,
                          "confidence": task.confidence, "average_score": task.average_score} for task in tasks]
 
-    return jsonify(serialized_tasks)
+    return jsonify(serialized_tasks), 200
 
 
-@app.route("/delete_task", methods=["DELETE"])
+@app.route("/update_task", methods=["PUT"])  # Done
+@login_required
+def update_task():
+    task_id = request.args.get("task_id")
+    
+    if not task_id:
+        return jsonify({"message": "Please enter a valid task id"}), 404
+
+    # Find the task in database
+    task = Task.query.filter_by(id=task_id, user_id=current_user.id).first()
+
+    if not task:
+        return jsonify({"message": "Task not found"}), 404
+
+    # Update task
+    title = request.args.get("title")
+    description = request.args.get("description")
+    impact = request.args.get("impact")
+    ease = request.args.get("ease")
+    confidence = request.args.get("confidence")
+
+    if title:
+        task.title = title
+
+    if description:
+        task.description = description
+
+    if impact:
+        task.impact = int(impact)
+
+    if ease:
+        task.ease = int(ease)
+
+    if confidence:
+        task.confidence = int(confidence)
+
+    task.average_score = (task.impact + task.ease + task.confidence) / 3
+
+    # Commit changes to the database
+    db.session.commit()
+
+    return jsonify({"message": "Task updated successfully"}), 200
+
+
+# Route for deleting a task (login required)
+@app.route("/delete_task", methods=["DELETE"])  # Done
 @login_required
 def delete_task():
     task_id = request.args.get("task_id")
-    print(task_id)
+    
+    if not task_id:
+        return jsonify({"message": "Please enter a valid task id"}), 404
 
     # Find the task in database
     task = Task.query.filter_by(id=task_id).first()
-
-    print(task.id, task.title)
 
     if task and task.user_id == current_user.id:
         # Delete the task
         db.session.delete(task)
         db.session.commit()
-        return jsonify({'message': 'Task deleted successfully'})
+        return jsonify({"message": "Task deleted successfully"}), 200
     else:
-        return jsonify({'message': 'Task not found'}), 404
+        return jsonify({"message": "Task not found"}), 404
 
 
 if __name__ == "__main__":
