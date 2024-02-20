@@ -25,12 +25,22 @@ class User(UserMixin, db.Model):
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.String(140))
+    title = db.Column(db.String(120))
+    description = db.Column(db.String(255))
     impact = db.Column(db.Integer)
     ease = db.Column(db.Integer)
     confidence = db.Column(db.Integer)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    average_score = db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __init__(self, title, description, impact, ease, confidence, average_score, user_id):
+        self.title = title
+        self.description = description
+        self.impact = impact
+        self.ease = ease
+        self.confidence = confidence
+        self.average_score = average_score
+        self.user_id = user_id
 
     def __repr__(self):
         return f'<Task {self.description}>'
