@@ -2,9 +2,14 @@ import  os
 from flask import Flask, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_required, UserMixin, current_user, logout_user, login_user
-from models import db, User, Task  # Import db, User and Task from models.py
+#from models import db, User, Task  # Import db, User and Task from models.py
+from flask_login import UserMixin
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+
+db = SQLAlchemy()
+db.init_app(app)
 
 login_manager = LoginManager(app)
 
@@ -12,7 +17,44 @@ app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")  # Secret key
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")  # SQLite database URI
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # Disable modification tracking for SQLAlchemy
 
-db.init_app(app)
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), index=True, unique=True)
+    email = db.Column(db.String(120), index=True, unique=True)
+    password_hash = db.Column(db.String(255))
+    tasks = db.relationship('Task', backref='user', lazy='dynamic')
+
+    def __init__(self, username, email, password_hash):
+        self.username = username
+        self.email = email
+        self.password_hash = password_hash
+
+    def __repr__(self):
+        return f'<User {self.username}>'
+
+
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(120))
+    description = db.Column(db.String(255))
+    impact = db.Column(db.Integer)
+    ease = db.Column(db.Integer)
+    confidence = db.Column(db.Integer)
+    average_score = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __init__(self, title, description, impact, ease, confidence, average_score, user_id):
+        self.title = title
+        self.description = description
+        self.impact = impact
+        self.ease = ease
+        self.confidence = confidence
+        self.average_score = average_score
+        self.user_id = user_id
+
+    def __repr__(self):
+        return f'<Task {self.description}>'
 
 
 @login_manager.user_loader
