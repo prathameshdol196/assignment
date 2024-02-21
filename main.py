@@ -1,5 +1,5 @@
 
-
+import  os
 
 from flask import Flask, request, jsonify
 
@@ -7,18 +7,15 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from flask_login import LoginManager, login_required, UserMixin, current_user, logout_user, login_user
 
-import logging
-
-from flask_sqlalchemy import SQLAlchemy
-
 from models import db, User, Task  # Import db, User and Task from models.py
 
 app = Flask(__name__)
 
 login_manager = LoginManager(app)
 
-app.config["SECRET_KEY"] = "888-dg885v5-v685fv-5xc4vvf-gjgh5cvb-5gh413v"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///mytaskpool.db"  # SQLite database URI
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")  # Secret key
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")  # SQLite database URI
+# postgres://mytaskpool_user:uLCNs5eTMFSwIrhUedU3dL0AQvtPriFv@dpg-cnasdmf109ks73a2e2tg-a.oregon-postgres.render.com/mytaskpool
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # Disable modification tracking for SQLAlchemy
 
 db.init_app(app)
