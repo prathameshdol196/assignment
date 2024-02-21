@@ -15,7 +15,6 @@ login_manager = LoginManager(app)
 
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")  # Secret key
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")  # SQLite database URI
-# postgres://mytaskpool_user:uLCNs5eTMFSwIrhUedU3dL0AQvtPriFv@dpg-cnasdmf109ks73a2e2tg-a.oregon-postgres.render.com/mytaskpool
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # Disable modification tracking for SQLAlchemy
 
 db.init_app(app)
