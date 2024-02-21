@@ -9,7 +9,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 
 app = Flask(__name__)
 
-db = SQLAlchemy()
+db = SQLAlchemy(app=app)
 db.init_app(app)
 
 login_manager = LoginManager(app)
