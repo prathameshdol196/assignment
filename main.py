@@ -1,12 +1,7 @@
-
 import  os
-
 from flask import Flask, request, jsonify
-
 from werkzeug.security import generate_password_hash, check_password_hash
-
 from flask_login import LoginManager, login_required, UserMixin, current_user, logout_user, login_user
-
 from models import db, User, Task  # Import db, User and Task from models.py
 
 app = Flask(__name__)
