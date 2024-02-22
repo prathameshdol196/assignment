@@ -1,6 +1,3 @@
-
-
-
 from wsgi import app
 
 
