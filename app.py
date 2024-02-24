@@ -58,6 +58,11 @@ class Task(db.Model):
         return f'<Task {self.description}>'
 
 
+# Create the database tables
+with app.app_context():
+    db.create_all()
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
