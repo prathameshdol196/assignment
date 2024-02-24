@@ -69,7 +69,7 @@ def index():
 
 
 # Register User
-@app.route("/register", methods=["POST"])  # Done
+@app.route("/register", methods=["GET", "POST"])  # Done
 def register():
 
     username = request.args.get("username")
@@ -93,7 +93,7 @@ def register():
     return jsonify({"message": "User registered successfully"}), 201
 
 
-@app.route("/login", methods=["POST"])  # Done
+@app.route("/login", methods=["GET", "POST"])  # Done
 def login():
     # Retrieve login credentials from the request
     email = request.args.get("email")
@@ -123,7 +123,7 @@ def logout():
 
 
 # Route for adding a task (login required)
-@app.route("/add_task", methods=["POST"])  # Done
+@app.route("/add_task", methods=["GET", "POST"])  # Done
 @login_required
 def add_task():
     # Retrieve task data from the request
