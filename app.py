@@ -70,7 +70,7 @@ def load_user(user_id):
 
 @app.route("/")
 def index():
-    return "Hello, World!"
+    return jsonify({"message": "Hello World!"}), 200
 
 
 # Register User
