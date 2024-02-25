@@ -49,7 +49,7 @@ DATABASE_URL=sqlite:///your_database.db
     ```
   - Example URL: `/register?username=example_username&email=example_user@example.com&password=example_password`
 
-#
+
 2. Login:
 - `POST /login`: Login as an existing user.
   - Parameters: `email`, `password`
@@ -59,13 +59,13 @@ DATABASE_URL=sqlite:///your_database.db
     ```
   - Example URl: `/login?email=example_user@example.com&password=example_password`
   
-#    
+
 3. Logout
 - `GET /logout`: Logout the current user.
   - Example: `/logout`
 
 
-#
+
 ### Task 
 
 
