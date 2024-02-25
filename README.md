@@ -14,4 +14,4 @@ This is a simple task management application built with Flask, SQLAlchemy, and F
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/
+git clone https://github.com/prathameshdol196/assignment
