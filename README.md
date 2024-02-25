@@ -100,8 +100,8 @@ DATABASE_URL=sqlite:///your_database.db
 
 4. Delete Task
 - `DELETE /delete_task`: Delete an existing task.
-- Parameters: `task_id`
-- ```bash
-  task_id = id_of_task
-  ```
+  - Parameters: `task_id`
+  - ```bash
+    task_id = id_of_task
+    ```
   - Example URL: `/delete_task?task_id=id_of_task`
